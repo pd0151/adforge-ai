@@ -91,7 +91,7 @@ style={{ width: "100%", borderRadius: "12px" }}
 src={
 product.toLowerCase().includes("tyre") ||
 product.toLowerCase().includes("car")
-? "https://cdn.coverr.co/videos/coverr-car-driving-on-road-1584/1080p.mp4"
+? "https://www.w3schools.com/html/mov_bbb.mp4"
 : "https://www.w3schools.com/html/mov_bbb.mp4"
 }
 />
