@@ -2,16 +2,47 @@
 
 import { useState } from "react";
 
-export default function Page() {
+export default function Home() {
 const [input, setInput] = useState("");
 const [result, setResult] = useState("");
 const [loading, setLoading] = useState(false);
 
-async function handleClick() {
+const generateContent = async () => {
 if (!input.trim()) return;
 
 setLoading(true);
 setResult("");
+
+const fullPrompt = `
+You are a viral social media expert.
+
+The user topic is: "${input}"
+
+Create:
+1. 3 viral Instagram captions
+2. 3 short AI video ideas
+3. 1 short reel script
+
+Make the response clear and easy to read.
+Use this format:
+
+CAPTIONS
+1.
+2.
+3.
+
+VIDEO IDEAS
+1.
+2.
+3.
+
+REEL SCRIPT
+Hook:
+Scene 1:
+Scene 2:
+Scene 3:
+Ending:
+`;
 
 try {
 const res = await fetch("/api/generate", {
@@ -19,133 +50,149 @@ method: "POST",
 headers: {
 "Content-Type": "application/json",
 },
-body: JSON.stringify({ prompt: input }),
+body: JSON.stringify({ prompt: fullPrompt }),
 });
 
 const data = await res.json();
-setResult(data.result || "No caption generated.");
-} catch {
-setResult("Something went wrong.");
-} finally {
+setResult(data.result || data.text || "No result returned.");
+} catch (error) {
+setResult("Something went wrong. Please try again.");
+}
+
 setLoading(false);
-}
-}
+};
 
 return (
 <main
 style={{
 minHeight: "100vh",
-background: "linear-gradient(135deg, #e0e7ff, #f1f5f9)",
-display: "flex",
-justifyContent: "center",
-alignItems: "center",
+background: "#eef2ff",
 padding: "24px",
+fontFamily: "Arial, sans-serif",
 }}
 >
 <div
 style={{
-width: "100%",
-maxWidth: "700px",
+maxWidth: "850px",
+margin: "40px auto",
 background: "white",
-padding: "32px",
 borderRadius: "24px",
-boxShadow: "0 12px 40px rgba(0,0,0,0.08)",
-border: "1px solid #e5e7eb",
+padding: "32px",
+boxShadow: "0 20px 50px rgba(0,0,0,0.08)",
 }}
 >
-<h1 style={{ fontSize: "44px", fontWeight: "800", letterSpacing: "-1px" }}>
-CaptionPro AI 🚀
+<h1
+style={{
+fontSize: "48px",
+fontWeight: "bold",
+marginBottom: "10px",
+color: "#111827",
+}}
+>
+ViralCaption AI 🚀
 </h1>
 
-<p style={{ color: "#6b7280", marginBottom: "24px", fontSize: "16px" }}>
-Create scroll-stopping captions that boost engagement 🔥
+<p
+style={{
+fontSize: "20px",
+color: "#4b5563",
+marginBottom: "24px",
+}}
+>
+Create viral captions, video ideas, and reel scripts in seconds 🔥
 </p>
 
 <textarea
+placeholder="Try: luxury lifestyle, gym transformation, beauty brand launch..."
 value={input}
 onChange={(e) => setInput(e.target.value)}
-placeholder="Try: gym transformation, luxury lifestyle..."
 style={{
 width: "100%",
 minHeight: "120px",
-padding: "16px",
-borderRadius: "14px",
+padding: "18px",
+fontSize: "18px",
 border: "1px solid #d1d5db",
-fontSize: "16px",
+borderRadius: "16px",
+marginBottom: "18px",
 resize: "vertical",
 boxSizing: "border-box",
 }}
 />
 
 <button
-onClick={handleClick}
+onClick={generateContent}
 disabled={loading}
 style={{
-marginTop: "16px",
 width: "100%",
-padding: "16px",
-background: loading ? "#9ca3af" : "linear-gradient(135deg, #111827, #374151)",
+padding: "18px",
+background: loading ? "#9ca3af" : "#111827",
 color: "white",
-borderRadius: "14px",
 border: "none",
+borderRadius: "16px",
+fontSize: "22px",
 fontWeight: "bold",
-fontSize: "18px",
 cursor: loading ? "not-allowed" : "pointer",
 }}
 >
-{loading ? "Generating..." : "Generate Caption"}
+{loading ? "Generating..." : "Generate Captions + Video Ideas"}
 </button>
 
 {result && (
 <div
 style={{
-marginTop: "24px",
-display: "grid",
-gap: "16px",
-}}
->
-{result.split("\n---\n").map((caption, index) => (
-<div
-key={index}
-style={{
+marginTop: "28px",
 background: "#f9fafb",
 border: "1px solid #e5e7eb",
-borderRadius: "16px",
-padding: "18px",
+borderRadius: "18px",
+padding: "24px",
 }}
 >
 <div
 style={{
 display: "flex",
 justifyContent: "space-between",
-marginBottom: "10px",
+alignItems: "center",
+marginBottom: "16px",
 }}
 >
-<strong>Caption {index + 1}</strong>
+<h2
+style={{
+fontSize: "24px",
+margin: 0,
+color: "#111827",
+}}
+>
+Your Content
+</h2>
 
 <button
-onClick={() => navigator.clipboard.writeText(caption)}
+onClick={() => navigator.clipboard.writeText(result)}
 style={{
-fontSize: "12px",
-padding: "6px 10px",
-borderRadius: "8px",
-border: "1px solid #ccc",
+padding: "10px 14px",
 background: "white",
+border: "1px solid #d1d5db",
+borderRadius: "10px",
 cursor: "pointer",
+fontWeight: "bold",
 }}
 >
 Copy
 </button>
 </div>
 
-<div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
-{caption}
+<div
+style={{
+whiteSpace: "pre-wrap",
+lineHeight: 1.7,
+color: "#1f2937",
+fontSize: "17px",
+}}
+>
+{result}
 </div>
-</div>
-))}
 </div>
 )}
 </div>
 </main>
 );
-}
+}ss
