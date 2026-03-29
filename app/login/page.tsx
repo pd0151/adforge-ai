@@ -24,42 +24,61 @@ localStorage.setItem("user", username.trim());
 router.push("/feed");
 }
 
-if (!users.includes(username.trim())) {
-alert("User not found. Sign up first.");
-return;
-}
-
-localStorage.setItem("user", username.trim());
-router.push("/feed");
-}
-
 return (
-<main className="create-page">
-<div className="create-card">
-<h1 className="create-title">Login</h1>
-<p className="create-subtitle">Enter your username</p>
+<main
+style={{
+minHeight: "100vh",
+display: "flex",
+justifyContent: "center",
+alignItems: "center",
+background: "#0f172a",
+color: "white",
+}}
+>
+<div
+style={{
+width: "100%",
+maxWidth: "420px",
+background: "#1e293b",
+padding: "32px",
+borderRadius: "16px",
+}}
+>
+<h1 style={{ fontSize: "40px", marginBottom: "8px" }}>Login</h1>
+<p style={{ marginBottom: "20px", color: "#cbd5e1" }}>
+Enter your username
+</p>
 
 <input
-className="create-input"
-placeholder="Username"
+type="text"
 value={username}
 onChange={(e) => setUsername(e.target.value)}
+placeholder="Username"
+style={{
+width: "100%",
+padding: "14px",
+borderRadius: "10px",
+border: "none",
+marginBottom: "16px",
+fontSize: "16px",
+}}
 />
 
-<div className="create-buttons">
-<button className="create-btn primary" onClick={handleLogin}>
+<button
+onClick={handleLogin}
+style={{
+padding: "12px 20px",
+borderRadius: "10px",
+border: "none",
+cursor: "pointer",
+fontSize: "16px",
+}}
+>
 Login
 </button>
-</div>
 
-<p style={{ marginTop: 20 }}>
-No account?{" "}
-<span
-style={{ color: "#4ea1ff", cursor: "pointer" }}
-onClick={() => router.push("/signup")}
->
-Sign up
-</span>
+<p style={{ marginTop: "16px", color: "#cbd5e1" }}>
+No account? <a href="/signup">Sign up</a>
 </p>
 </div>
 </main>
