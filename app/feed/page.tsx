@@ -22,10 +22,23 @@ body: JSON.stringify({ prompt }),
 });
 
 const data = await res.json();
-setImage(data.image || null);
+
+console.log("API RESPONSE:", data);
+
+if (!res.ok) {
+alert(data.error || "Something went wrong");
+return;
+}
+
+if (!data.image) {
+alert("No image came back from API");
+return;
+}
+
+setImage(data.image);
 } catch (error) {
+alert("Request failed");
 console.error(error);
-alert("Failed to generate ad");
 } finally {
 setLoading(false);
 }
@@ -35,32 +48,32 @@ return (
 <main
 style={{
 minHeight: "100vh",
-background: "#0f172a",
+padding: "40px",
+background: "linear-gradient(to bottom, #1e293b, #0f172a)",
 color: "white",
-padding: "30px",
-fontFamily: "Arial",
 }}
 >
-<h1>Ad Feed</h1>
+<h1 style={{ fontSize: "28px", fontWeight: "bold" }}>Ad Feed</h1>
 
-<div style={{ marginTop: "20px" }}>
+<div style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
 <input
+type="text"
 placeholder="Describe your ad..."
 value={prompt}
 onChange={(e) => setPrompt(e.target.value)}
 style={{
 padding: "12px",
-width: "320px",
-marginRight: "10px",
 borderRadius: "8px",
+width: "300px",
 border: "none",
 }}
 />
 
 <button
 onClick={generateAd}
+disabled={loading}
 style={{
-padding: "12px 18px",
+padding: "12px 16px",
 borderRadius: "8px",
 border: "none",
 cursor: "pointer",
