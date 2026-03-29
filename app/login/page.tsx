@@ -8,7 +8,21 @@ const [username, setUsername] = useState("");
 const router = useRouter();
 
 function handleLogin() {
-const users = JSON.parse(localStorage.getItem("users") || "[]");
+const stored =
+typeof window !== "undefined"
+? localStorage.getItem("users")
+: null;
+
+const users = stored ? JSON.parse(stored) : [];
+
+if (!users.includes(username.trim())) {
+alert("User not found. Sign up first.");
+return;
+}
+
+localStorage.setItem("user", username.trim());
+router.push("/feed");
+}
 
 if (!users.includes(username.trim())) {
 alert("User not found. Sign up first.");
