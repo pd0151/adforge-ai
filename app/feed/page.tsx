@@ -8,37 +8,26 @@ const [image, setImage] = useState<string | null>(null);
 const [loading, setLoading] = useState(false);
 
 async function generateAd() {
-if (!prompt) return;
-
 setLoading(true);
 
 try {
 const res = await fetch("/api/generate-image", {
 method: "POST",
-headers: {
-"Content-Type": "application/json",
-},
-body: JSON.stringify({ prompt }),
 });
 
 const data = await res.json();
 
-console.log("API RESPONSE:", data);
-
-if (!res.ok) {
-alert(data.error || "Something went wrong");
-return;
-}
+console.log("RESPONSE:", data);
 
 if (!data.image) {
-alert("No image came back from API");
+alert("No image returned");
 return;
 }
 
 setImage(data.image);
-} catch (error) {
-alert("Request failed");
-console.error(error);
+} catch (err) {
+console.error(err);
+alert("Error generating image");
 } finally {
 setLoading(false);
 }
