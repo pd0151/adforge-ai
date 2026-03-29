@@ -1,7 +1,7 @@
 export default function Home() {
 return (
 <main>
-<h1>Hello - your app is working</h1>
+<h1>This is MY AI app</h1>
 </main>
 );
 }
