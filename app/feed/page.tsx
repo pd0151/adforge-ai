@@ -2,110 +2,84 @@
 
 import { useEffect, useState } from "react";
 
-type AdPost = {
-id: number;
+type Post = {
+id: string;
 prompt: string;
 image: string;
 likes: number;
-comments: number;
+comments: string[];
 };
 
 export default function FeedPage() {
 const [prompt, setPrompt] = useState("");
+const [posts, setPosts] = useState<Post[]>([]);
 const [loading, setLoading] = useState(false);
-const [posts, setPosts] = useState<AdPost[]>([]);
+const [commentInputs, setCommentInputs] = useState<{ [key: string]: string }>({});
 
-// Load from localStorage
+// Load posts from localStorage
 useEffect(() => {
-const stored = localStorage.getItem("ads-feed");
-if (stored) {
-try {
-setPosts(JSON.parse(stored));
-} catch {
-setPosts([]);
-}
-}
+const saved = localStorage.getItem("adforge-posts");
+if (saved) setPosts(JSON.parse(saved));
 }, []);
 
-function savePosts(newPosts: AdPost[]) {
-setPosts(newPosts);
-localStorage.setItem("ads-feed", JSON.stringify(newPosts));
-}
+// Save posts
+useEffect(() => {
+localStorage.setItem("adforge-posts", JSON.stringify(posts));
+}, [posts]);
 
-async function generateAd() {
-if (!prompt.trim()) return alert("Type something first");
-
+const generateAd = async () => {
+if (!prompt) return;
 setLoading(true);
 
 try {
 const res = await fetch("/api/generate-image", {
 method: "POST",
-headers: {
-"Content-Type": "application/json",
-},
 body: JSON.stringify({ prompt }),
 });
 
 const data = await res.json();
 
-if (!res.ok || !data.image) {
-alert("Failed to generate");
-return;
-}
-
-const newPost: AdPost = {
-id: Date.now(),
+const newPost: Post = {
+id: Date.now().toString(),
 prompt,
 image: data.image,
 likes: 0,
-comments: 0,
+comments: [],
 };
 
-const updated = [newPost, ...posts];
-savePosts(updated);
+setPosts([newPost, ...posts]);
 setPrompt("");
 } catch (err) {
 console.error(err);
-alert("Error generating");
-} finally {
+}
+
 setLoading(false);
-}
-}
+};
 
-function likePost(id: number) {
-const updated = posts.map((p) =>
+const likePost = (id: string) => {
+setPosts(posts.map(p =>
 p.id === id ? { ...p, likes: p.likes + 1 } : p
-);
-savePosts(updated);
-}
+));
+};
 
-function commentPost(id: number) {
-const updated = posts.map((p) =>
-p.id === id ? { ...p, comments: p.comments + 1 } : p
-);
-savePosts(updated);
-}
+const addComment = (id: string) => {
+const text = commentInputs[id];
+if (!text) return;
 
-function sharePost() {
-alert("Share feature coming soon 🚀");
-}
+setPosts(posts.map(p =>
+p.id === id
+? { ...p, comments: [...p.comments, text] }
+: p
+));
+
+setCommentInputs({ ...commentInputs, [id]: "" });
+};
 
 return (
-<main
-style={{
-minHeight: "100vh",
-background: "#0f172a",
-color: "white",
-padding: "20px",
-fontFamily: "Arial",
-}}
->
-<div style={{ maxWidth: "700px", margin: "0 auto" }}>
-<h1 style={{ fontSize: "32px", marginBottom: "20px" }}>
-AdForge Feed
-</h1>
+<main style={{ padding: "20px", maxWidth: "600px", margin: "auto", color: "white" }}>
+<h1 style={{ fontSize: "28px", marginBottom: "10px" }}>AdForge Feed</h1>
 
-{/* INPUT */}
+{/* Input */}
 <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
 <input
 value={prompt}
@@ -114,82 +88,96 @@ placeholder="Create an ad..."
 style={{
 flex: 1,
 padding: "12px",
-borderRadius: "10px",
-border: "none",
+borderRadius: "8px",
+border: "none"
 }}
 />
-
 <button
 onClick={generateAd}
 disabled={loading}
 style={{
-padding: "12px 18px",
-borderRadius: "10px",
+padding: "12px 16px",
+borderRadius: "8px",
 border: "none",
-fontWeight: "bold",
-cursor: "pointer",
+cursor: "pointer"
 }}
 >
 {loading ? "..." : "Generate"}
 </button>
 </div>
 
-{/* FEED */}
+{/* Feed */}
 {posts.length === 0 && <p>No ads yet</p>}
 
-<div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-{posts.map((post) => (
+{posts.map(post => (
 <div
 key={post.id}
 style={{
 background: "#1e293b",
-borderRadius: "16px",
-overflow: "hidden",
+padding: "10px",
+borderRadius: "12px",
+marginBottom: "20px"
 }}
 >
 <img
 src={post.image}
-style={{ width: "100%", display: "block" }}
+style={{
+width: "100%",
+borderRadius: "10px"
+}}
 />
 
-<div style={{ padding: "12px" }}>
-<p style={{ marginBottom: "10px" }}>{post.prompt}</p>
+<p style={{ marginTop: "8px", fontSize: "14px" }}>
+{post.prompt}
+</p>
 
-<div
-style={{
-display: "flex",
-justifyContent: "space-between",
-alignItems: "center",
-}}
->
-<div style={{ display: "flex", gap: "15px" }}>
+{/* Actions */}
+<div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
 <button onClick={() => likePost(post.id)}>
 ❤️ {post.likes}
 </button>
 
-<button onClick={() => commentPost(post.id)}>
-💬 {post.comments}
+<button
+onClick={() => navigator.clipboard.writeText(post.image)}
+>
+🔗 Share
 </button>
-
-<button onClick={sharePost}>🔗 Share</button>
 </div>
 
-<button
-onClick={() => {
-const a = document.createElement("a");
-a.href = post.image;
-a.download = "ad.png";
-a.click();
+{/* Comments */}
+<div style={{ marginTop: "10px" }}>
+<input
+placeholder="Write a comment..."
+value={commentInputs[post.id] || ""}
+onChange={(e) =>
+setCommentInputs({
+...commentInputs,
+[post.id]: e.target.value
+})
+}
+style={{
+width: "100%",
+padding: "8px",
+borderRadius: "6px",
+border: "none",
+marginBottom: "5px"
 }}
->
-⬇️
+/>
+
+<button onClick={() => addComment(post.id)}>
+Add Comment
 </button>
+
+<div style={{ marginTop: "10px" }}>
+{post.comments.map((c, i) => (
+<p key={i} style={{ fontSize: "13px", opacity: 0.9 }}>
+💬 {c}
+</p>
+))}
 </div>
 </div>
 </div>
 ))}
-</div>
-</div>
 </main>
 );
 }
