@@ -1,184 +1,144 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-type Post = {
-id: string;
-prompt: string;
-image: string;
-likes: number;
-comments: string[];
-shares: number;
-};
+import { useState, useEffect } from "react";
 
 export default function FeedPage() {
 const [prompt, setPrompt] = useState("");
-const [posts, setPosts] = useState<Post[]>([]);
-const [loading, setLoading] = useState(false);
-const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
+const [posts, setPosts] = useState<any[]>([]);
 
-// LOAD POSTS
 useEffect(() => {
-const saved = localStorage.getItem("adforge-posts");
-if (saved) {
-try {
-setPosts(JSON.parse(saved));
-} catch {
-setPosts([]);
-}
-}
+const saved = localStorage.getItem("posts");
+if (saved) setPosts(JSON.parse(saved));
 }, []);
 
-// SAVE POSTS
-useEffect(() => {
-localStorage.setItem("adforge-posts", JSON.stringify(posts));
-}, [posts]);
-
-// GENERATE AD
-async function generateAd() {
-if (!prompt.trim()) {
-alert("Type something first");
-return;
-}
-
-setLoading(true);
-
+const generate = async () => {
 try {
 const res = await fetch("/api/generate-image", {
 method: "POST",
-headers: {
-"Content-Type": "application/json",
-},
 body: JSON.stringify({ prompt }),
 });
 
 const data = await res.json();
 
-console.log("API:", data);
-
-if (!res.ok || !data.image) {
-alert("Error generating image");
-return;
-}
-
-const newPost: Post = {
-id: Date.now().toString(),
+const newPost = {
+id: Date.now(),
 prompt,
 image: data.image,
 likes: 0,
 comments: [],
-shares: 0,
 };
 
-setPosts((prev) => [newPost, ...prev]);
+const updated = [newPost, ...posts];
+setPosts(updated);
+localStorage.setItem("posts", JSON.stringify(updated));
 setPrompt("");
-
-} catch (error) {
-console.error(error);
+} catch {
 alert("Error generating");
-} finally {
-setLoading(false);
 }
-}
+};
 
-function likePost(id: string) {
-setPosts((prev) =>
-prev.map((p) =>
+const like = (id: number) => {
+const updated = posts.map((p) =>
 p.id === id ? { ...p, likes: p.likes + 1 } : p
-)
 );
-}
-
-function sharePost(id: string, image: string) {
-navigator.clipboard.writeText(image);
-
-setPosts((prev) =>
-prev.map((p) =>
-p.id === id ? { ...p, shares: p.shares + 1 } : p
-)
-);
-
-alert("Copied!");
-}
-
-function addComment(id: string) {
-const text = (commentInputs[id] || "").trim();
-if (!text) return;
-
-setPosts((prev) =>
-prev.map((p) =>
-p.id === id
-? { ...p, comments: [...p.comments, text] }
-: p
-)
-);
-
-setCommentInputs((prev) => ({
-...prev,
-[id]: "",
-}));
-}
+setPosts(updated);
+localStorage.setItem("posts", JSON.stringify(updated));
+};
 
 return (
-<main style={{ padding: 20, color: "white" }}>
-<h1>AdForge Feed</h1>
-
-<div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+<main style={styles.container}>
+{/* TOP BAR */}
+<div style={styles.topBar}>
 <input
+style={styles.input}
+placeholder="Create an ad..."
 value={prompt}
 onChange={(e) => setPrompt(e.target.value)}
-placeholder="Create an ad..."
-style={{ flex: 1, padding: 10 }}
 />
-
-<button onClick={generateAd}>
-{loading ? "..." : "Generate"}
+<button style={styles.button} onClick={generate}>
+Generate
 </button>
 </div>
 
+{/* FEED */}
+<div style={styles.feed}>
 {posts.map((post) => (
-<div key={post.id} style={{ marginBottom: 30 }}>
+<div key={post.id} style={styles.card}>
+<img src={post.image} style={styles.image} />
 
-{/* IMAGE */}
-<img
-src={post.image}
-style={{ width: "100%", maxHeight: 400, objectFit: "cover" }}
-/>
-
+<div style={styles.overlay}>
 <p>{post.prompt}</p>
 
-<div style={{ display: "flex", gap: 10 }}>
-<button onClick={() => likePost(post.id)}>
-❤️ {post.likes}
-</button>
-
-<button>💬 {post.comments.length}</button>
-
-<button onClick={() => sharePost(post.id, post.image)}>
+<div style={styles.actions}>
+<button onClick={() => like(post.id)}>❤️ {post.likes}</button>
+<button
+onClick={() =>
+navigator.clipboard.writeText(post.image)
+}
+>
 🔗 Share
 </button>
 </div>
-
-<div style={{ marginTop: 10 }}>
-<input
-placeholder="Comment..."
-value={commentInputs[post.id] || ""}
-onChange={(e) =>
-setCommentInputs({
-...commentInputs,
-[post.id]: e.target.value,
-})
-}
-/>
-
-<button onClick={() => addComment(post.id)}>Add</button>
 </div>
-
-{post.comments.map((c, i) => (
-<p key={i}>💬 {c}</p>
-))}
 </div>
 ))}
+</div>
 </main>
 );
 }
+
+const styles: any = {
+container: {
+background: "#0f172a",
+color: "white",
+height: "100vh",
+overflow: "hidden",
+},
+topBar: {
+display: "flex",
+gap: 10,
+padding: 10,
+position: "fixed",
+width: "100%",
+zIndex: 10,
+background: "#0f172a",
+},
+input: {
+flex: 1,
+padding: 10,
+borderRadius: 10,
+border: "none",
+},
+button: {
+padding: "10px 15px",
+borderRadius: 10,
+border: "none",
+cursor: "pointer",
+},
+feed: {
+marginTop: 70,
+height: "calc(100vh - 70px)",
+overflowY: "scroll",
+scrollSnapType: "y mandatory",
+},
+card: {
+height: "100vh",
+position: "relative",
+scrollSnapAlign: "start",
+},
+image: {
+width: "100%",
+height: "100%",
+objectFit: "cover",
+},
+overlay: {
+position: "absolute",
+bottom: 20,
+left: 20,
+},
+actions: {
+marginTop: 10,
+display: "flex",
+gap: 10,
+},
+};
