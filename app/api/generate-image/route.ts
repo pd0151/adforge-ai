@@ -11,11 +11,11 @@ return NextResponse.json(
 );
 }
 
-const image = `https://image.pollinations.ai/prompt/${encodeURIComponent(
-prompt
-)}`;
+// FREE image generator (no API key needed)
+const image = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
 
 return NextResponse.json({ image });
+
 } catch (error) {
 console.error(error);
 
