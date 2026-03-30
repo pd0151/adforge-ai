@@ -14,9 +14,13 @@ const generateImage = async () => {
 if (!prompt) return;
 
 setLoading(true);
+
 try {
 const res = await fetch("/api/generate-image", {
 method: "POST",
+headers: {
+"Content-Type": "application/json",
+},
 body: JSON.stringify({ prompt }),
 });
 
@@ -25,109 +29,157 @@ setImage(data.image);
 setLikes(0);
 setComments([]);
 } catch (err) {
-console.error(err);
-alert("Failed to generate image");
+alert("Error generating image");
 }
+
 setLoading(false);
 };
 
-const handleLike = () => {
-setLikes((prev) => prev + 1);
-};
-
-const handleAddComment = () => {
+const addComment = () => {
 if (!commentInput) return;
-setComments((prev) => [...prev, commentInput]);
+setComments([...comments, commentInput]);
 setCommentInput("");
 };
 
-const handleDownload = () => {
-if (!image) return;
-const link = document.createElement("a");
-link.href = image;
-link.download = "ad-image.png";
-link.click();
-};
-
-const handleShare = async () => {
-if (navigator.share) {
-await navigator.share({
-title: "AI Ad",
-text: prompt,
-url: image,
-});
-} else {
-alert("Sharing not supported on this device");
-}
-};
-
 return (
-<div className="min-h-screen bg-black text-white p-6">
+<div style={styles.page}>
+<div style={styles.container}>
+<h1 style={styles.title}>AdForge</h1>
+
 {/* INPUT */}
-<div className="flex gap-2 mb-6">
+<div style={styles.inputRow}>
 <input
+style={styles.input}
 value={prompt}
 onChange={(e) => setPrompt(e.target.value)}
 placeholder="Create an ad..."
-className="flex-1 p-3 rounded bg-gray-800 text-white"
 />
-<button
-onClick={generateImage}
-className="bg-blue-500 px-4 rounded"
->
+
+<button style={styles.button} onClick={generateImage}>
 {loading ? "Generating..." : "Generate"}
 </button>
 </div>
 
 {/* IMAGE CARD */}
 {image && (
-<div className="bg-gray-900 rounded-lg p-4 max-w-xl mx-auto">
-<img src={image} className="rounded mb-4" />
+<div style={styles.card}>
+<img src={image} style={styles.image} />
 
-<h2 className="text-xl font-bold mb-2">
-{prompt}
-</h2>
+<h2 style={styles.prompt}>{prompt}</h2>
 
 {/* ACTIONS */}
-<div className="flex gap-4 mb-4">
-<button onClick={handleLike}>
+<div style={styles.actions}>
+<button onClick={() => setLikes(likes + 1)}>
 ❤️ {likes}
 </button>
 
-<button onClick={handleShare}>
+<button
+onClick={() => {
+navigator.clipboard.writeText(image);
+alert("Link copied");
+}}
+>
 🔗 Share
 </button>
 
-<button onClick={handleDownload}>
-⬇️ Download
+<button
+onClick={() => {
+const a = document.createElement("a");
+a.href = image;
+a.download = "ad.png";
+a.click();
+}}
+>
+⬇ Download
 </button>
 </div>
 
 {/* COMMENTS */}
-<div>
-<div className="flex gap-2 mb-2">
+<div style={styles.commentBox}>
 <input
+style={styles.commentInput}
 value={commentInput}
 onChange={(e) => setCommentInput(e.target.value)}
 placeholder="Write a comment..."
-className="flex-1 p-2 rounded bg-gray-800"
 />
-<button
-onClick={handleAddComment}
-className="bg-green-500 px-3 rounded"
->
-Post
-</button>
+
+<button onClick={addComment}>Post</button>
 </div>
 
 {comments.map((c, i) => (
-<p key={i} className="text-sm text-gray-300">
+<p key={i} style={styles.comment}>
 💬 {c}
 </p>
 ))}
 </div>
-</div>
 )}
+</div>
 </div>
 );
 }
+
+const styles: any = {
+page: {
+minHeight: "100vh",
+background: "#0f172a",
+color: "white",
+padding: 20,
+},
+container: {
+maxWidth: 700,
+margin: "0 auto",
+},
+title: {
+fontSize: 32,
+marginBottom: 20,
+},
+inputRow: {
+display: "flex",
+gap: 10,
+marginBottom: 20,
+},
+input: {
+flex: 1,
+padding: 12,
+borderRadius: 6,
+border: "none",
+},
+button: {
+padding: "12px 20px",
+background: "#2563eb",
+color: "white",
+border: "none",
+borderRadius: 6,
+},
+card: {
+background: "#111827",
+padding: 16,
+borderRadius: 10,
+},
+image: {
+width: "100%",
+borderRadius: 8,
+},
+prompt: {
+marginTop: 10,
+fontWeight: "bold",
+},
+actions: {
+display: "flex",
+gap: 10,
+marginTop: 10,
+},
+commentBox: {
+display: "flex",
+gap: 10,
+marginTop: 10,
+},
+commentInput: {
+flex: 1,
+padding: 8,
+},
+comment: {
+marginTop: 5,
+color: "#ccc",
+},
+};
