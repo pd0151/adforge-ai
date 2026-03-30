@@ -12,7 +12,7 @@ return NextResponse.json(
 }
 
 const image = `https://image.pollinations.ai/prompt/${encodeURIComponent(
-prompt
+prompt.trim()
 )}`;
 
 return NextResponse.json({ image });
