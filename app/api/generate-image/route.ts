@@ -8,25 +8,25 @@ export async function POST(req: Request) {
 try {
 const { prompt } = await req.json();
 
-const image = await openai.images.generate({
+const result = await openai.images.generate({
 model: "gpt-image-1",
 prompt,
 size: "1024x1024",
 });
 
-const imageUrl = image.data?.[0]?.url;
+const b64 = result.data?.[0]?.b64_json;
 
-if (!imageUrl) {
+if (!b64) {
 return new Response(
 JSON.stringify({ error: "No image returned" }),
 { status: 500 }
 );
 }
 
+const image = `data:image/png;base64,${b64}`;
+
 return new Response(
-JSON.stringify({
-image: imageUrl,
-}),
+JSON.stringify({ image }),
 { status: 200 }
 );
 } catch (error) {
