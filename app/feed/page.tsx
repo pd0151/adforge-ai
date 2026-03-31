@@ -12,15 +12,12 @@ const [commentInput, setCommentInput] = useState("");
 
 const generateImage = async () => {
 if (!prompt) return;
-
 setLoading(true);
 
 try {
 const res = await fetch("/api/generate-image", {
 method: "POST",
-headers: {
-"Content-Type": "application/json",
-},
+headers: { "Content-Type": "application/json" },
 body: JSON.stringify({ prompt }),
 });
 
@@ -28,7 +25,7 @@ const data = await res.json();
 setImage(data.image);
 setLikes(0);
 setComments([]);
-} catch (err) {
+} catch {
 alert("Error generating image");
 }
 
@@ -42,44 +39,37 @@ setCommentInput("");
 };
 
 return (
-<div style={styles.page}>
-<div style={styles.container}>
-<h1 style={styles.title}>AdForge</h1>
+<div style={{ padding: 20, background: "#0f172a", minHeight: "100vh", color: "white" }}>
+<h1>AdForge</h1>
 
-{/* INPUT */}
-<div style={styles.inputRow}>
+<div style={{ display: "flex", gap: 10 }}>
 <input
-style={styles.input}
 value={prompt}
 onChange={(e) => setPrompt(e.target.value)}
 placeholder="Create an ad..."
+style={{ flex: 1, padding: 10 }}
 />
-
-<button style={styles.button} onClick={generateImage}>
+<button onClick={generateImage}>
 {loading ? "Generating..." : "Generate"}
 </button>
 </div>
 
-{/* IMAGE CARD */}
 {image && (
-<div style={styles.card}>
-<img src={image} style={styles.image} />
+<div style={{ marginTop: 20, background: "#111", padding: 10 }}>
+<img src={image} style={{ width: "100%" }} />
 
-<h2 style={styles.prompt}>{prompt}</h2>
+<h3>{prompt}</h3>
 
-{/* ACTIONS */}
-<div style={styles.actions}>
-<button onClick={() => setLikes(likes + 1)}>
-❤️ {likes}
-</button>
+<div style={{ display: "flex", gap: 10 }}>
+<button onClick={() => setLikes(likes + 1)}>❤️ {likes}</button>
 
 <button
 onClick={() => {
 navigator.clipboard.writeText(image);
-alert("Link copied");
+alert("Copied");
 }}
 >
-🔗 Share
+Share
 </button>
 
 <button
@@ -90,96 +80,24 @@ a.download = "ad.png";
 a.click();
 }}
 >
-⬇ Download
+Download
 </button>
 </div>
 
-{/* COMMENTS */}
-<div style={styles.commentBox}>
+<div style={{ marginTop: 10 }}>
 <input
-style={styles.commentInput}
 value={commentInput}
 onChange={(e) => setCommentInput(e.target.value)}
-placeholder="Write a comment..."
+placeholder="Write comment..."
 />
-
 <button onClick={addComment}>Post</button>
 </div>
 
 {comments.map((c, i) => (
-<p key={i} style={styles.comment}>
-💬 {c}
-</p>
+<p key={i}>{c}</p>
 ))}
 </div>
 )}
 </div>
-</div>
 );
 }
-
-const styles: any = {
-page: {
-minHeight: "100vh",
-background: "#0f172a",
-color: "white",
-padding: 20,
-},
-container: {
-maxWidth: 700,
-margin: "0 auto",
-},
-title: {
-fontSize: 32,
-marginBottom: 20,
-},
-inputRow: {
-display: "flex",
-gap: 10,
-marginBottom: 20,
-},
-input: {
-flex: 1,
-padding: 12,
-borderRadius: 6,
-border: "none",
-},
-button: {
-padding: "12px 20px",
-background: "#2563eb",
-color: "white",
-border: "none",
-borderRadius: 6,
-},
-card: {
-background: "#111827",
-padding: 16,
-borderRadius: 10,
-},
-image: {
-width: "100%",
-borderRadius: 8,
-},
-prompt: {
-marginTop: 10,
-fontWeight: "bold",
-},
-actions: {
-display: "flex",
-gap: 10,
-marginTop: 10,
-},
-commentBox: {
-display: "flex",
-gap: 10,
-marginTop: 10,
-},
-commentInput: {
-flex: 1,
-padding: 8,
-},
-comment: {
-marginTop: 5,
-color: "#ccc",
-},
-};
