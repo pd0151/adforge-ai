@@ -8,6 +8,16 @@ export async function POST(req: Request) {
 try {
 const { prompt } = await req.json();
 
+if (!prompt || !prompt.trim()) {
+return new Response(
+JSON.stringify({ error: "No prompt provided" }),
+{
+status: 400,
+headers: { "Content-Type": "application/json" },
+}
+);
+}
+
 const result = await openai.images.generate({
 model: "gpt-image-1",
 prompt,
@@ -18,8 +28,14 @@ const image_base64 = result.data?.[0]?.b64_json;
 
 if (!image_base64) {
 return new Response(
-JSON.stringify({ error: "No image returned" }),
-{ status: 500 }
+JSON.stringify({
+error: "No image returned from OpenAI",
+debug: result,
+}),
+{
+status: 500,
+headers: { "Content-Type": "application/json" },
+}
 );
 }
 
@@ -27,13 +43,22 @@ const image = `data:image/png;base64,${image_base64}`;
 
 return new Response(JSON.stringify({ image }), {
 status: 200,
+headers: { "Content-Type": "application/json" },
 });
-} catch (error) {
-console.error("ERROR:", error);
+} catch (error: any) {
+console.error("GENERATE IMAGE ERROR:", error);
 
 return new Response(
-JSON.stringify({ error: "Failed to generate image" }),
-{ status: 500 }
+JSON.stringify({
+error: error?.message || "Failed to generate image",
+type: error?.type || null,
+code: error?.code || null,
+status: error?.status || null,
+}),
+{
+status: 500,
+headers: { "Content-Type": "application/json" },
+}
 );
 }
 }
